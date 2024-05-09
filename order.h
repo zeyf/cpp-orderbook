@@ -1,4 +1,6 @@
 #include <unordered_map>
+#include <random>
+
 
 #include "side.h"
 #include "pricing.h"
@@ -32,9 +34,17 @@ private:
     Side _side;
     Price _price;
     Quantity _quantity;
+
+    OrderId generateOrderId() {
+        std::random_device rd;
+        std::mt19937_64 gen(rd());
+        std::uniform_int_distribution<int64_t> dis(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max());
+        _id = dis(gen);
+    }
 public:
-    Order(OrderType type, OrderId id, Price price, Quantity quantity, Side side) :
-        _type(type), _id(id), _price(price), _quantity(quantity), _side(side) {}
+    Order(OrderType type, Price price, Quantity quantity, Side side) : _type(type), _price(price), _quantity(quantity), _side(side) {
+        _id = generateOrderId();
+    }
 
 
     // Getters
@@ -54,7 +64,7 @@ public:
 
 
 class MarketOrder: public Order {
-    MarketOrder(Price price, Quantity quantity, Side side): Order(OrderType::MARKET, 1111, price, quantity, side) {}
+    MarketOrder(Price price, Quantity quantity, Side side): Order(OrderType::MARKET, price, quantity, side) {}
     void execute() {
 
     };
@@ -62,7 +72,7 @@ class MarketOrder: public Order {
 
 
 class MarketOnCloseOrder: public Order {
-    MarketOnCloseOrder(Price price, Quantity quantity, Side side): Order(OrderType::MARKET_ON_CLOSE, 1111, price, quantity, side) {}
+    MarketOnCloseOrder(Price price, Quantity quantity, Side side): Order(OrderType::MARKET_ON_CLOSE, price, quantity, side) {}
     void execute() {
 
     };
@@ -70,35 +80,35 @@ class MarketOnCloseOrder: public Order {
 
 
 class DayOrder: public Order {
-    DayOrder(Price price, Quantity quantity, Side side): Order(OrderType::DAY, 1111, price, quantity, side) {}
+    DayOrder(Price price, Quantity quantity, Side side): Order(OrderType::DAY, price, quantity, side) {}
     void execute() {
 
     };
 };
 
 class GoodTillCancelledOrder: public Order {
-    GoodTillCancelledOrder(Price price, Quantity quantity, Side side): Order(OrderType::GOOD_TILL_CANCELLED, 1111, price, quantity, side) {}
+    GoodTillCancelledOrder(Price price, Quantity quantity, Side side): Order(OrderType::GOOD_TILL_CANCELLED, price, quantity, side) {}
     void execute() {
 
     };
 };
 
 class TrailingStopOrder: public Order {
-    TrailingStopOrder(Price price, Quantity quantity, Side side): Order(OrderType::TRAILING_STOP, 1111, price, quantity, side) {}
+    TrailingStopOrder(Price price, Quantity quantity, Side side): Order(OrderType::TRAILING_STOP, price, quantity, side) {}
     void execute() {
 
     };
 };
 
 class AllOrNoneOrder: public Order {
-    AllOrNoneOrder(Price price, Quantity quantity, Side side): Order(OrderType::ALL_OR_NONE, 1111, price, quantity, side) {}
+    AllOrNoneOrder(Price price, Quantity quantity, Side side): Order(OrderType::ALL_OR_NONE, price, quantity, side) {}
     void execute() {
 
     };
 };
 
 class FillOrKillOrder: public Order {
-    FillOrKillOrder(Price price, Quantity quantity, Side side): Order(OrderType::FILL_OR_KILL, 1111, price, quantity, side) {}
+    FillOrKillOrder(Price price, Quantity quantity, Side side): Order(OrderType::FILL_OR_KILL, price, quantity, side) {}
     void execute() {
 
     };
@@ -106,7 +116,7 @@ class FillOrKillOrder: public Order {
 
 
 class BracketOrder: public Order {
-    BracketOrder(Price price, Quantity quantity, Side side): Order(OrderType::BRACKET, 1111, price, quantity, side) {}
+    BracketOrder(Price price, Quantity quantity, Side side): Order(OrderType::BRACKET, price, quantity, side) {}
     void execute() {
 
     };
@@ -114,7 +124,7 @@ class BracketOrder: public Order {
 
 
 class MomentumOrder: public Order {
-    MomentumOrder(Price price, Quantity quantity, Side side): Order(OrderType::MOMENTUM, 1111, price, quantity, side) {}
+    MomentumOrder(Price price, Quantity quantity, Side side): Order(OrderType::MOMENTUM, price, quantity, side) {}
     void execute() {
 
     };
@@ -122,7 +132,7 @@ class MomentumOrder: public Order {
 
 
 class StopOrder: public Order {
-    StopOrder(Price price, Quantity quantity, Side side): Order(OrderType::STOP, 1111, price, quantity, side) {}
+    StopOrder(Price price, Quantity quantity, Side side): Order(OrderType::STOP, price, quantity, side) {}
     void execute() {
 
     };
@@ -130,7 +140,7 @@ class StopOrder: public Order {
 
 
 class ImmediateOrCancelOrder: public Order {
-    ImmediateOrCancelOrder(Price price, Quantity quantity, Side side): Order(OrderType::IMMEDIATE_OR_CANCEL, 1111, price, quantity, side) {}
+    ImmediateOrCancelOrder(Price price, Quantity quantity, Side side): Order(OrderType::IMMEDIATE_OR_CANCEL, price, quantity, side) {}
     void execute() {
 
     };
@@ -138,7 +148,7 @@ class ImmediateOrCancelOrder: public Order {
 
 
 class ConditionalOrder: public Order {
-    ConditionalOrder(Price price, Quantity quantity, Side side): Order(OrderType::CONDITIONAL, 1111, price, quantity, side) {}
+    ConditionalOrder(Price price, Quantity quantity, Side side): Order(OrderType::CONDITIONAL, price, quantity, side) {}
     void execute() {
 
     };
@@ -146,7 +156,7 @@ class ConditionalOrder: public Order {
 
 
 class BottomLineOrder: public Order {
-    BottomLineOrder(Price price, Quantity quantity, Side side): Order(OrderType::BOTTOM_LINE, 1111, price, quantity, side) {}
+    BottomLineOrder(Price price, Quantity quantity, Side side): Order(OrderType::BOTTOM_LINE, price, quantity, side) {}
     void execute() {
 
     };
@@ -154,7 +164,7 @@ class BottomLineOrder: public Order {
 
 
 class BottomLineOrder: public Order {
-    BottomLineOrder(Price price, Quantity quantity, Side side): Order(OrderType::BOTTOM_LINE, 1111, price, quantity, side) {}
+    BottomLineOrder(Price price, Quantity quantity, Side side): Order(OrderType::BOTTOM_LINE, price, quantity, side) {}
     void execute() {
 
     };
