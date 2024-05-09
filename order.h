@@ -42,9 +42,8 @@ private:
         _id = dis(gen);
     }
 public:
-    Order(OrderType type, Price price, Quantity quantity, Side side) : _type(type), _price(price), _quantity(quantity), _side(side) {
-        _id = generateOrderId();
-    }
+    Order(OrderType type, Price price, Quantity quantity, Side side)
+        : _type(type), _price(price), _quantity(quantity), _side(side), _id(generateOrderId()) {}
 
 
     // Getters
