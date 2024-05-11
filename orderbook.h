@@ -13,6 +13,12 @@ using PriceLayer = struct PriceLayer {
     std::map<Price, std::list<OrderPointer>, std::less<Price>> asks;
 };
 
+using TradeReport = struct TradeReport {  
+    Order bid;
+    Order ask;
+    Timestamp timestamp;
+};
+
 
 class Orderbook {
 private:

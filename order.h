@@ -1,8 +1,11 @@
 #include <unordered_map>
 #include <random>
 #include <list>
+#include <chrono>
 #include <math.h>
 
+
+#include "timing.h"
 #include "side.h"
 #include "pricing.h"
 
@@ -41,6 +44,7 @@ protected:
     TickerSymbol _ticker;
     OrderType _type;
     OrderId _id;
+    Timestamp _timestamp;
     OrderStatus _status;
     Side _side;
     Price _price;
@@ -58,34 +62,20 @@ public:
         _ticker(ticker), _status(OrderStatus::ACTIVE),
         _initial_quantity(quantity), _remaining_quantity(quantity),
         _type(type), _price(price),
-        _side(side), _id(generateOrderId()) {}
+        _side(side), _id(generateOrderId()),
+        _timestamp(getTimestampInNanosecondsUTC()) {}
 
 
     // Getters
-    const TickerSymbol getOrderTicker() const {
-        return _ticker;
-    }
-    const OrderType getOrderType() const {
-        return _type;
-    }
-    const OrderId getOrderId() const {
-        return _id;
-    }
-    const OrderStatus getOrderStatus() const {
-        return _status;
-    }
-    const OrderSide getOrderSide() const {
-        return _side;
-    }
-    const Price getOrderPrice() const {
-        return _price;
-    }
-    const Quantity getOrderInitialQuantity() const {
-        return _initial_quantity;
-    }
-    const Quantity getOrderRemainingQuantity() const {
-        return _remaining_quantity;
-    }
+    [[nodiscard]] const TickerSymbol getOrderTicker() const { return _ticker; }
+    [[nodiscard]] const OrderType getOrderType() const { return _type; }
+    [[nodiscard]] const OrderId getOrderId() const { return _id; }
+    [[nodiscard]] const Timestamp getTimestamp() const { return _timestamp; }
+    [[nodiscard]] const OrderStatus getOrderStatus() const { return _status; }
+    [[nodiscard]] const OrderSide getOrderSide() const { return _side; }
+    [[nodiscard]] const Price getOrderPrice() const { return _price; }
+    [[nodiscard]] const Quantity getOrderInitialQuantity() const { return _initial_quantity; }
+    [[nodiscard]] const Quantity getOrderRemainingQuantity() const { return _remaining_quantity; }
 
     [[nodiscard]] virtual bool canMatch() {
         throw std::logic_error("Not implemented");
