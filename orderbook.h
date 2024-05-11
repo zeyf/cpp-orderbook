@@ -3,6 +3,7 @@
 #include <memory>
 #include <unordered_map>
 #include <map>
+#include <exception>
 
 #include "order.h"
 #include "pricing.h"
@@ -28,35 +29,39 @@ public:
         }
         
         std::shared_ptr<OrderSurface> order_surface = _orders[id];
-
         if (order_surface == nullptr) {
             return;
         }
 
-        if (order_surface->side == Side::BUY) {
+        OrderPointer orderPtr = order_surface->orderPointer;
+        if (orderPtr == nullptr) {
+            return;
+        }
+
+        if (orderPtr->getOrderSide() == Side::BUY) {
             if (_price_layer.bids.empty()) {
                 return;
             }
 
-            std::list<OrderPointer> priceLevelBids = _price_layer.bids[order_surface->price];
+            std::list<OrderPointer> priceLevelBids = _price_layer.bids[orderPtr->getOrderPrice()];
 
             if (priceLevelBids.empty()) {
                 return;
             }
 
-            priceLevelBids.erase(order_surface->iterator);
+            priceLevelBids.erase(order_surface->orderPointerSidePriceIterator);
             _orders.erase(id);
-        } else if (order_surface->side == Side::SELL) {
+        } else if (orderPtr->getOrderSide() == Side::SELL) {
             if (_price_layer.asks.empty()) {
                 return;
             }
             
-            std::list<OrderPointer> priceLevelAsks = _price_layer.asks[order_surface->price];
+            std::list<OrderPointer> priceLevelAsks = _price_layer.asks[orderPtr->getOrderPrice()];
             if (priceLevelAsks.empty()) {
                 return;
             }
 
-            priceLevelAsks.erase(order_surface->iterator);
+            priceLevelAsks.erase(order_surface->orderPointerSidePriceIterator);
             _orders.erase(id);
         }
     }
