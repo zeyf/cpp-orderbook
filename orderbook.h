@@ -18,4 +18,72 @@ private:
     std::unordered_map<OrderId, std::shared_ptr<OrderSurface>> _orders;
     PriceLayer _price_layer;
 public:
+    [[nodiscard]] Order createOrder(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side) {
+        Order newOrder = Order(ticker, type, price, quantity, side);
+        OrderPointer newOrderPtr = std::make_shared<Order>(newOrder);
+        OrderSurface newOrderSurface{newOrderPtr};
+
+        if (side == OrderSide::BUY) {
+            _price_layer.bids[price].push_back(newOrderPtr);
+            newOrderSurface.orderPointerSidePriceIterator = _price_layer.bids[price].end();
+        } else if (side == OrderSide::SELL) {
+            _price_layer.asks[price].push_back(newOrderPtr);
+            newOrderSurface.orderPointerSidePriceIterator = _price_layer.asks[price].end();
+        };
+
+        _orders[newOrder.getOrderId()] = std::make_shared<OrderSurface>(newOrderSurface);
+        return newOrder;
+    };
+
+    [[nodiscard]] std::optional<Order> getOrder(OrderId id) const {
+        if (_orders.empty()) {
+            return std::optional<Order>();
+        }
+
+        OrderPointer orderPtr = _orders.at(id)->orderPointer;
+        if (orderPtr == nullptr) {
+            return std::optional<Order>();
+        }
+
+        return std::optional<Order>(*orderPtr);
+    }
+
+    void cancelOrder(OrderId id) {
+        if (_orders.empty()) {
+            return;
+        }
+        
+        std::shared_ptr<OrderSurface> order_surface = _orders[id];
+        if (order_surface == nullptr) {
+            return;
+        }
+        
+        OrderPointer orderPtr = order_surface->orderPointer;
+        if (orderPtr->getOrderSide() == Side::BUY) {
+            if (_price_layer.bids.empty()) {
+                return;
+            }
+
+            std::list<OrderPointer> priceLevelBids = _price_layer.bids[orderPtr->getOrderPrice()];
+            if (priceLevelBids.empty()) {
+                return;
+            }
+
+            priceLevelBids.erase(order_surface->orderPointerSidePriceIterator);
+            _orders.erase(id);
+        } else if (orderPtr->getOrderSide() == Side::SELL) {
+            if (_price_layer.asks.empty()) {
+                return;
+            }
+            
+            std::list<OrderPointer> priceLevelAsks = _price_layer.asks[orderPtr->getOrderPrice()];
+            if (priceLevelAsks.empty()) {
+                return;
+            }
+
+            priceLevelAsks.erase(order_surface->orderPointerSidePriceIterator);
+            _orders.erase(id);
+        }
+    }
+
 };

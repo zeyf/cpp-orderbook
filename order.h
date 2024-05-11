@@ -163,6 +163,7 @@ class FillOrKillOrder: public Order {
     };
 };
 
+
 // class TrailingStopOrder: public Order {
 //     TrailingStopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
 //     : Order(ticker, OrderType::TRAILING_STOP, price, quantity, side) {}
