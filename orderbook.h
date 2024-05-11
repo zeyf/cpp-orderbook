@@ -3,6 +3,7 @@
 #include <memory>
 #include <unordered_map>
 #include <map>
+#include <optional>
 
 #include "order.h"
 #include "pricing.h"
@@ -34,19 +35,6 @@ public:
         _orders[newOrder.getOrderId()] = std::make_shared<OrderSurface>(newOrderSurface);
         return newOrder;
     };
-
-    [[nodiscard]] std::optional<Order> getOrder(OrderId id) const {
-        if (_orders.empty()) {
-            return std::optional<Order>();
-        }
-
-        OrderPointer orderPtr = _orders.at(id)->orderPointer;
-        if (orderPtr == nullptr) {
-            return std::optional<Order>();
-        }
-
-        return std::optional<Order>(*orderPtr);
-    }
 
     void cancelOrder(OrderId id) {
         if (_orders.empty()) {
@@ -86,4 +74,16 @@ public:
         }
     }
 
+    [[nodiscard]] std::optional<Order> getOrder(OrderId id) const {
+        if (_orders.empty()) {
+            return std::optional<Order>();
+        }
+
+        OrderPointer orderPtr = _orders.at(id)->orderPointer;
+        if (orderPtr == nullptr) {
+            return std::optional<Order>();
+        }
+
+        return std::optional<Order>(*orderPtr);
+    }
 };
