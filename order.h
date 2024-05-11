@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <random>
 #include <list>
+#include <math.h>
 
 #include "side.h"
 #include "pricing.h"
@@ -50,7 +51,7 @@ private:
         std::random_device rd;
         std::mt19937_64 gen(rd());
         std::uniform_int_distribution<int64_t> dis(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max());
-        return dis(gen);
+        return abs(dis(gen));
     }
 public:
     Order(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side):
@@ -61,6 +62,9 @@ public:
 
 
     // Getters
+    const TickerSymbol getOrderTicker() const {
+        return _ticker;
+    }
     const OrderType getOrderType() const {
         return _type;
     }
