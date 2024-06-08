@@ -13,7 +13,7 @@ enum class TimeZone {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
 };
 
-[[nodiscard]] bool verifyIsEndOfDayForTimeZone(TimeZone timeZone) {
+[[nodiscard]] bool verifyIsAtOrPastDayForTimeZone(TimeZone timeZone) {
     Timestamp now = getTimestampInNanosecondsUTC();
     std::time_t utcSeconds = now / 1000000000;
     std::tm* utcTime = std::gmtime(&utcSeconds);
@@ -27,9 +27,9 @@ enum class TimeZone {
 
         // Check if the adjusted time is 4:00 PM
         return (
-            estTime->tm_hour == 16
-            && estTime->tm_min == 0
-            && estTime->tm_sec == 0
+            estTime->tm_hour >= 16
+            && estTime->tm_min >= 0
+            && estTime->tm_sec >= 0
         );
     } else {
         // TODO: Add time zone and consider if this warrants a throw?

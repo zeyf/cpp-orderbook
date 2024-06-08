@@ -1,7 +1,7 @@
 #include <thread>
 
 #include "pricing.h"
-#include "price_layer.h"
+#include "ticker_pricing_layer.h"
 #include "side.h"
 #include "order.h"
 #include "unordered_set"
@@ -9,17 +9,20 @@
 #include "exchange.h"
 
 #include "trade_reporter.h"
+#include "trade_processor.h"
+
 
 class OrderMatcher {
 private:
     std::unordered_map<OrderId, std::shared_ptr<OrderSurface>> &_orders;
-    PriceLayer &_priceLayer;
-    TradeReporter &_tradeReporter;
+    TickerPricingLayer &_tickerPriceLayer;
+    TradeProcessor &_tradeProcessor;
 
 
     [[nodiscard]] bool canMatch(Order order) {
         OrderSide side = order.getOrderSide();
         OrderType type = order.getOrderType();
+        TickerSymbol ticker = order.getOrderTicker();
         Price price = order.getOrderPrice();
 
         std::unordered_set<OrderSide> expectedOrderSides{OrderSide::BUY, OrderSide::SELL};
@@ -27,8 +30,8 @@ private:
             throw std::logic_error("Unexpected order type of ... cannot be matched");
         }
 
-        std::list<OrderPointer> bidsAtPrice = _priceLayer.bids.at(price);
-        std::list<OrderPointer> asksAtPrice = _priceLayer.asks.at(price);
+        std::list<OrderPointer> bidsAtPrice = _tickerPriceLayer.at(ticker).bids.at(price);
+        std::list<OrderPointer> asksAtPrice = _tickerPriceLayer.at(ticker).asks.at(price);
 
         switch(type) {
             case OrderType::DAY:
@@ -36,7 +39,7 @@ private:
                 TimeZone exchangeTimeZone = EXCHANGE_TO_TIMEZONE.at(exchange);
 
                 // Cancel order if it is the end of the day
-                if (verifyIsEndOfDayForTimeZone(exchangeTimeZone)) {
+                if (verifyIsAtOrPastDayForTimeZone(exchangeTimeZone)) {
                     // Cancel order
                     order.cancel();
                     return false;
@@ -47,25 +50,16 @@ private:
                         return false;
                     }
 
-                    Quantity remainingBidOrderQuantity = order.getOrderRemainingQuantity();
                     for (OrderPointer currentAskOrderPtr: asksAtPrice) {
-                        std::pair<OrderFillCapacity, Quantity> fillableContext = currentAskOrderPtr->getFillableQuantity(remainingBidOrderQuantity);
-                        
-                        // Zero out both orders, report on TradeReporter
-                        if (fillableContext.first == OrderFillCapacity::FULL) {
-
-                        // Zero out one order, remove from the other, report on TradeReporter
-                        } else {
-
-                        };
+                        _tradeProcessor.process(order, *currentAskOrderPtr);
                     }
                 } else {
                     if (bidsAtPrice.empty()) {
                         return false;
                     }
 
-                    for (OrderPointer bidOrderPtr: bidsAtPrice) {
-
+                    for (OrderPointer currentBidOrderPtr: bidsAtPrice) {
+                        _tradeProcessor.process(order, *currentBidOrderPtr);
                     }
                 }
             case OrderType::MARKET_ON_CLOSE:
@@ -79,13 +73,16 @@ private:
         return false;
     }
 
-    void match() {
-
+    void listen() {
+        // TODO: Implement listening thread
     }
 public:
     OrderMatcher(
         std::unordered_map<OrderId, std::shared_ptr<OrderSurface>> &orders,
-        PriceLayer &priceLayer,
-        TradeReporter &tradeReporter
-    ): _orders(orders), _priceLayer(priceLayer), _tradeReporter(tradeReporter) {}
+        TickerPricingLayer &tickerPricingLayer,
+        TradeProcessor &tradeProcessor
+    ):
+    _orders(orders),
+    _tickerPriceLayer(tickerPricingLayer),
+    _tradeProcessor(tradeProcessor) {}
 };

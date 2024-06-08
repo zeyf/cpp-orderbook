@@ -2,16 +2,9 @@
 #include "timing.h"
 
 
-using TradeReport = struct TradeReport {  
-    Order bid;
-    Order ask;
-    Timestamp timestamp;
-};
-
+// TODO: Finish design and implement
 class TradeReporter {
 private:
-    std::vector<TradeReport> _tradeReports;
-
+    // std::vector<TradeReport> _tradeReports;
 public:
-    // TODO: Finish design and implement
 };
