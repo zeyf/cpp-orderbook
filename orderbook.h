@@ -7,17 +7,7 @@
 
 #include "order.h"
 #include "pricing.h"
-
-using PriceLayer = struct PriceLayer {
-    std::map<Price, std::list<OrderPointer>, std::greater<Price>> bids;
-    std::map<Price, std::list<OrderPointer>, std::less<Price>> asks;
-};
-
-using TradeReport = struct TradeReport {  
-    Order bid;
-    Order ask;
-    Timestamp timestamp;
-};
+#include "price_layer.h"
 
 
 class Orderbook {
@@ -25,8 +15,8 @@ private:
     std::unordered_map<OrderId, std::shared_ptr<OrderSurface>> _orders;
     PriceLayer _price_layer;
 public:
-    [[nodiscard]] Order createOrder(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side) {
-        Order newOrder = Order(ticker, type, price, quantity, side);
+    [[nodiscard]] Order createOrder(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side, Exchange exchange) {
+        Order newOrder = Order(ticker, type, price, quantity, side, exchange);
         OrderPointer newOrderPtr = std::make_shared<Order>(newOrder);
         OrderSurface newOrderSurface{newOrderPtr};
 

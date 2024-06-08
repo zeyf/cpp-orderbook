@@ -8,7 +8,7 @@
 #include "timing.h"
 #include "side.h"
 #include "pricing.h"
-
+#include "exchange.h"
 
 using TickerSymbol = const char *;
 
@@ -39,9 +39,15 @@ enum class OrderStatus {
     CANCELLED
 };
 
+enum class OrderFillCapacity {
+    FULL,
+    PARTIAL
+};
+
 class Order {
 protected:
     TickerSymbol _ticker;
+    Exchange _exchange;
     OrderType _type;
     OrderId _id;
     Timestamp _timestamp;
@@ -58,16 +64,18 @@ private:
         return abs(dis(gen));
     }
 public:
-    Order(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side):
+    Order(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side, Exchange exchange):
         _ticker(ticker), _status(OrderStatus::ACTIVE),
         _initial_quantity(quantity), _remaining_quantity(quantity),
         _type(type), _price(price),
         _side(side), _id(generateOrderId()),
-        _timestamp(getTimestampInNanosecondsUTC()) {}
+        _timestamp(getTimestampInNanosecondsUTC()),
+        _exchange(exchange) {}
 
 
     // Getters
     [[nodiscard]] const TickerSymbol getOrderTicker() const { return _ticker; }
+    [[nodiscard]] const Exchange getOrderExchange() const { return _exchange; }
     [[nodiscard]] const OrderType getOrderType() const { return _type; }
     [[nodiscard]] const OrderId getOrderId() const { return _id; }
     [[nodiscard]] const Timestamp getTimestamp() const { return _timestamp; }
@@ -76,12 +84,22 @@ public:
     [[nodiscard]] const Price getOrderPrice() const { return _price; }
     [[nodiscard]] const Quantity getOrderInitialQuantity() const { return _initial_quantity; }
     [[nodiscard]] const Quantity getOrderRemainingQuantity() const { return _remaining_quantity; }
-
-    [[nodiscard]] virtual bool canMatch() {
-        throw std::logic_error("Not implemented");
+    [[nodiscard]] const std::pair<OrderFillCapacity, Quantity> getFillableQuantity(Quantity q) {
+        if (_remaining_quantity <= q) {
+            return std::pair<OrderFillCapacity, Quantity>{OrderFillCapacity::FULL, _remaining_quantity};
+        } else {
+            return std::pair<OrderFillCapacity, Quantity>{OrderFillCapacity::PARTIAL, _remaining_quantity - q};
+        }
     }
-    virtual void match() {
-        throw std::logic_error("Not implemented");
+
+    // TODO
+    void cancel() {
+        _status = OrderStatus::CANCELLED;
+    }
+
+    // TODO
+    void complete() {
+        _status = OrderStatus::COMPLETED;
     }
 };
 
@@ -95,8 +113,8 @@ using OrderSurface = struct OrderSurface {
 
 
 class MarketOrder: public Order {
-    MarketOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-    : Order(ticker, OrderType::MARKET, price, quantity, side) {}
+    MarketOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+    : Order(ticker, OrderType::MARKET, price, quantity, side, exchange) {}
 
     [[nodiscard]] bool canMatch() {
         throw std::logic_error("Not implemented");
@@ -108,8 +126,8 @@ class MarketOrder: public Order {
 
 
 class MarketOnCloseOrder: public Order {
-    MarketOnCloseOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-    : Order(ticker, OrderType::MARKET_ON_CLOSE, price, quantity, side) {}
+    MarketOnCloseOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+    : Order(ticker, OrderType::MARKET_ON_CLOSE, price, quantity, side, exchange) {}
 
     [[nodiscard]] bool canMatch() {
         throw std::logic_error("Not implemented");
@@ -121,8 +139,8 @@ class MarketOnCloseOrder: public Order {
 
 
 class DayOrder: public Order {
-    DayOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-    : Order(ticker, OrderType::DAY, price, quantity, side) {}
+    DayOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+    : Order(ticker, OrderType::DAY, price, quantity, side, exchange) {}
 
     [[nodiscard]] bool canMatch() {
         throw std::logic_error("Not implemented");
@@ -133,8 +151,8 @@ class DayOrder: public Order {
 };
 
 class GoodTillCancelledOrder: public Order {
-    GoodTillCancelledOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-    : Order(ticker, OrderType::GOOD_TILL_CANCELLED, price, quantity, side) {}
+    GoodTillCancelledOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+    : Order(ticker, OrderType::GOOD_TILL_CANCELLED, price, quantity, side, exchange) {}
 
     [[nodiscard]] bool canMatch() {
         throw std::logic_error("Not implemented");
@@ -146,8 +164,8 @@ class GoodTillCancelledOrder: public Order {
 
 
 class FillOrKillOrder: public Order {
-    FillOrKillOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-    : Order(ticker, OrderType::FILL_OR_KILL, price, quantity, side) {}
+    FillOrKillOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+    : Order(ticker, OrderType::FILL_OR_KILL, price, quantity, side, exchange) {}
 
     [[nodiscard]] bool canMatch() {
         throw std::logic_error("Not implemented");
@@ -159,16 +177,16 @@ class FillOrKillOrder: public Order {
 
 
 // class TrailingStopOrder: public Order {
-//     TrailingStopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-//     : Order(ticker, OrderType::TRAILING_STOP, price, quantity, side) {}
+//     TrailingStopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+//     : Order(ticker, OrderType::TRAILING_STOP, price, quantity, side, exchange) {}
 //     void match() {
 //         throw std::logic_error("Not implemented");
 //     };
 // };
 
 // class AllOrNoneOrder: public Order {
-//     AllOrNoneOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-//     : Order(ticker, OrderType::ALL_OR_NONE, price, quantity, side) {}
+//     AllOrNoneOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+//     : Order(ticker, OrderType::ALL_OR_NONE, price, quantity, side, exchange) {}
 //     void match() {
 //         throw std::logic_error("Not implemented");
 //     };
@@ -176,8 +194,8 @@ class FillOrKillOrder: public Order {
 
 
 // class BracketOrder: public Order {
-//     BracketOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-//     : Order(ticker, OrderType::BRACKET, price, quantity, side) {}
+//     BracketOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+//     : Order(ticker, OrderType::BRACKET, price, quantity, side, exchange) {}
 //     void match() {
 //         throw std::logic_error("Not implemented");
 //     };
@@ -185,8 +203,8 @@ class FillOrKillOrder: public Order {
 
 
 // class MomentumOrder: public Order {
-//     MomentumOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-//     : Order(ticker, OrderType::MOMENTUM, price, quantity, side) {}
+//     MomentumOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+//     : Order(ticker, OrderType::MOMENTUM, price, quantity, side, exchange) {}
 //     void match() {
 //         throw std::logic_error("Not implemented");
 //     };
@@ -194,8 +212,8 @@ class FillOrKillOrder: public Order {
 
 
 // class StopOrder: public Order {
-//     StopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-//     : Order(ticker, OrderType::STOP, price, quantity, side) {}
+//     StopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+//     : Order(ticker, OrderType::STOP, price, quantity, side, exchange) {}
 //     void match() {
 //         throw std::logic_error("Not implemented");
 //     };
@@ -203,8 +221,8 @@ class FillOrKillOrder: public Order {
 
 
 // class ImmediateOrCancelOrder: public Order {
-//     ImmediateOrCancelOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-//     : Order(ticker, OrderType::IMMEDIATE_OR_CANCEL, price, quantity, side) {}
+//     ImmediateOrCancelOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+//     : Order(ticker, OrderType::IMMEDIATE_OR_CANCEL, price, quantity, side, exchange) {}
 //     void match() {
 //         throw std::logic_error("Not implemented");
 //     };
@@ -212,8 +230,8 @@ class FillOrKillOrder: public Order {
 
 
 // class ConditionalOrder: public Order {
-//     ConditionalOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-//     : Order(ticker, OrderType::CONDITIONAL, price, quantity, side) {}
+//     ConditionalOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+//     : Order(ticker, OrderType::CONDITIONAL, price, quantity, side, exchange) {}
 //     void match() {
 //         throw std::logic_error("Not implemented");
 //     };
@@ -221,8 +239,8 @@ class FillOrKillOrder: public Order {
 
 
 // class BottomLineOrder: public Order {
-//     BottomLineOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side)
-//     : Order(ticker, OrderType::BOTTOM_LINE, price, quantity, side) {}
+//     BottomLineOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
+//     : Order(ticker, OrderType::BOTTOM_LINE, price, quantity, side, exchange) {}
 //     void match() {
 //         throw std::logic_error("Not implemented");
 //     };
