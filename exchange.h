@@ -16,6 +16,7 @@ private:
     ExchangeId _id;
     TimeZone _timezone;
     std::unordered_map<TickerSymbol, Orderbook> _orderbooks;
+    std::unordered_map<OrderId, TickerSymbol> _orderIdTickers;
 public:
     Exchange(ExchangeId id):
     _id(id),
@@ -29,6 +30,19 @@ public:
         Side side,
         Exchange exchange
     ) {
-        _orderbooks[ticker].createOrder(ticker, type, price, quantity, side, exchange);
+        try {
+            Order o = _orderbooks[ticker].createOrder(ticker, type, price, quantity, side, exchange);
+            _orderIdTickers[o.getOrderId()] = o.getOrderTicker();
+        } catch (std::exception &ex) {
+            // TODO LOG ERROR
+        }
+    };
+
+    void cancelOrder(OrderId id) {
+        if (!_orderIdTickers.count(id)) {
+            std::logic_error("No order is associated with this order ID");
+        }
+
+        _orderbooks[_orderIdTickers[id]].cancelOrder(id);
     };
 };
