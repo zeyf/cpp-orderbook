@@ -1,7 +1,7 @@
 #include <thread>
 
 #include "pricing.h"
-#include "ticker_pricing_layer.h"
+#include "pricing_layer.h"
 #include "side.h"
 #include "order.h"
 #include "unordered_set"
@@ -15,7 +15,7 @@
 class OrderMatcher {
 private:
     std::unordered_map<OrderId, std::shared_ptr<OrderSurface>> &_orders;
-    TickerPricingLayer &_tickerPriceLayer;
+    PricingLayer &_pricingLayer;
     TradeProcessor &_tradeProcessor;
 
 
@@ -30,13 +30,13 @@ private:
             throw std::logic_error("Unexpected order type of ... cannot be matched");
         }
 
-        std::list<OrderPointer> bidsAtPrice = _tickerPriceLayer.at(ticker).bids.at(price);
-        std::list<OrderPointer> asksAtPrice = _tickerPriceLayer.at(ticker).asks.at(price);
+        std::list<OrderPointer> bidsAtPrice = _pricingLayer.bids.at(price);
+        std::list<OrderPointer> asksAtPrice = _pricingLayer.asks.at(price);
 
         switch(type) {
             case OrderType::DAY:
-                Exchange exchange = order.getOrderExchange();
-                TimeZone exchangeTimeZone = EXCHANGE_TO_TIMEZONE.at(exchange);
+                ExchangeId exchange = order.getOrderExchangeId();
+                TimeZone exchangeTimeZone = EXCHANGE_ID_TO_TIMEZONE.at(exchange);
 
                 // Cancel order if it is the end of the day
                 if (verifyIsAtOrPastDayForTimeZone(exchangeTimeZone)) {
@@ -79,10 +79,10 @@ private:
 public:
     OrderMatcher(
         std::unordered_map<OrderId, std::shared_ptr<OrderSurface>> &orders,
-        TickerPricingLayer &tickerPricingLayer,
+        PricingLayer &pricingLayer,
         TradeProcessor &tradeProcessor
     ):
     _orders(orders),
-    _tickerPriceLayer(tickerPricingLayer),
+    _pricingLayer(pricingLayer),
     _tradeProcessor(tradeProcessor) {}
 };
