@@ -1,3 +1,6 @@
+#ifndef ORDER_H
+#define ORDER_H
+
 #include <unordered_map>
 #include <random>
 #include <list>
@@ -209,3 +212,5 @@ class FillOrKillOrder: public Order {
 //     BottomLineOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
 //     : Order(ticker, OrderType::BOTTOM_LINE, price, quantity, side, exchange) {}
 // };
+
+#endif

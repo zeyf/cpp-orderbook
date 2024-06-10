@@ -1,3 +1,7 @@
+#ifndef TIMING_H
+#define TIMING_H
+
+
 #include <chrono>
 #include <ctime>
 
@@ -37,3 +41,5 @@ enum class TimeZone {
         return false;
     }
 };
+
+#endif
