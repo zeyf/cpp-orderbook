@@ -110,7 +110,7 @@ public:
 
     // Getters
     [[nodiscard]] const TickerSymbol getOrderTicker() const { return _ticker; }
-    [[nodiscard]] const ExchangeId getOrderExchange() const { return _exchangeId; }
+    [[nodiscard]] const ExchangeId getOrderExchangeId() const { return _exchangeId; }
     [[nodiscard]] const OrderType getOrderType() const { return _type; }
     [[nodiscard]] const OrderId getOrderId() const { return _id; }
     [[nodiscard]] const Timestamp getTimestamp() const { return _timestamp; }
