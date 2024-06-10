@@ -1,5 +1,8 @@
-#include <unordered_map>
+#ifndef EXCHANGE_H
+#define EXCHANGE_H
 
+
+#include <unordered_map>
 
 #include "timing.h"
 #include "orderbook.h"
@@ -22,7 +25,7 @@ public:
     _id(id),
     _timezone(EXCHANGE_ID_TO_TIMEZONE.at(id)) {}
 
-    void createOrder(
+    std::optional<Order> createOrder(
         TickerSymbol ticker,
         OrderType type,
         Price price,
@@ -32,16 +35,29 @@ public:
         try {
             Order o = _orderbooks[ticker].createOrder(ticker, type, price, quantity, side, _id);
             _orderIdTickers[o.getOrderId()] = o.getOrderTicker();
+            return o;
         } catch (std::exception &ex) {
             // TODO LOG ERROR
         }
+
+        return std::optional<Order>();
     };
 
-    void cancelOrder(OrderId id) {
-        if (!_orderIdTickers.count(id)) {
+    void cancelOrder(OrderId orderId) {
+        if (!_orderIdTickers.count(orderId)) {
             std::logic_error("No order is associated with this order ID");
         }
 
-        _orderbooks[_orderIdTickers[id]].cancelOrder(id);
+        _orderbooks[_orderIdTickers[orderId]].cancelOrder(orderId);
     };
+
+    std::optional<Order> getOrder(OrderId orderId) {
+        if (!_orderIdTickers.count(orderId)) {
+            std::logic_error("No order is associated with this order ID");
+        }
+
+        return _orderbooks[_orderIdTickers[orderId]].getOrder(orderId);
+    }
 };
+
+#endif
