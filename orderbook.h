@@ -15,8 +15,8 @@ private:
     std::unordered_map<OrderId, std::shared_ptr<OrderSurface>> _orders;
     PricingLayer _pricing_layer;
 public:
-    Order createOrder(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side, Exchange exchange) {
-        Order newOrder = Order(ticker, type, price, quantity, side, exchange);
+    Order createOrder(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side, ExchangeId exchangeId) {
+        Order newOrder = Order(ticker, type, price, quantity, side, exchangeId);
         OrderPointer newOrderPtr = std::make_shared<Order>(newOrder);
         OrderSurface newOrderSurface{newOrderPtr};
 

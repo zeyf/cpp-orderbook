@@ -1,10 +1,10 @@
-#include "timing.h"
 #include <unordered_map>
 
-enum class ExchangeId {
-    NYSE,
-    NASDAQ
-};
+
+#include "timing.h"
+#include "orderbook.h"
+#include "exchange_id.h"
+
 
 std::unordered_map<ExchangeId, TimeZone> EXCHANGE_ID_TO_TIMEZONE{
     {ExchangeId::NYSE, TimeZone::EST},
@@ -27,11 +27,10 @@ public:
         OrderType type,
         Price price,
         Quantity quantity,
-        Side side,
-        Exchange exchange
+        Side side
     ) {
         try {
-            Order o = _orderbooks[ticker].createOrder(ticker, type, price, quantity, side, exchange);
+            Order o = _orderbooks[ticker].createOrder(ticker, type, price, quantity, side, _id);
             _orderIdTickers[o.getOrderId()] = o.getOrderTicker();
         } catch (std::exception &ex) {
             // TODO LOG ERROR
