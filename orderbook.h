@@ -7,25 +7,25 @@
 
 #include "order.h"
 #include "pricing.h"
-#include "ticker_pricing_layer.h"
+#include "pricing_layer.h"
 
 
 class Orderbook {
 private:
     std::unordered_map<OrderId, std::shared_ptr<OrderSurface>> _orders;
-    TickerPricingLayer _ticker_pricing_layer;
+    PricingLayer _pricing_layer;
 public:
-    [[nodiscard]] Order createOrder(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side, Exchange exchange) {
-        Order newOrder = Order(ticker, type, price, quantity, side, exchange);
+    Order createOrder(TickerSymbol ticker, OrderType type, Price price, Quantity quantity, Side side, ExchangeId exchangeId) {
+        Order newOrder = Order(ticker, type, price, quantity, side, exchangeId);
         OrderPointer newOrderPtr = std::make_shared<Order>(newOrder);
         OrderSurface newOrderSurface{newOrderPtr};
 
         if (side == OrderSide::BUY) {
-            _ticker_pricing_layer.at(ticker).bids[price].push_back(newOrderPtr);
-            newOrderSurface.orderPointerSidePriceIterator = _ticker_pricing_layer.at(ticker).bids[price].end();
+            _pricing_layer.bids[price].push_back(newOrderPtr);
+            newOrderSurface.orderPointerSidePriceIterator = _pricing_layer.bids[price].end();
         } else if (side == OrderSide::SELL) {
-            _ticker_pricing_layer.at(ticker).asks[price].push_back(newOrderPtr);
-            newOrderSurface.orderPointerSidePriceIterator = _ticker_pricing_layer.at(ticker).asks[price].end();
+            _pricing_layer.asks[price].push_back(newOrderPtr);
+            newOrderSurface.orderPointerSidePriceIterator = _pricing_layer.asks[price].end();
         };
 
         _orders[newOrder.getOrderId()] = std::make_shared<OrderSurface>(newOrderSurface);
@@ -43,13 +43,12 @@ public:
         }
         
         OrderPointer orderPtr = order_surface->orderPointer;
-        PricingLayer pricingLayer = _ticker_pricing_layer.at(orderPtr->getOrderTicker());
         if (orderPtr->getOrderSide() == Side::BUY) {
-            if (pricingLayer.bids.empty()) {
+            if (_pricing_layer.bids.empty()) {
                 return;
             }
 
-            std::list<OrderPointer> priceLevelBids = pricingLayer.bids[orderPtr->getOrderPrice()];
+            std::list<OrderPointer> priceLevelBids = _pricing_layer.bids[orderPtr->getOrderPrice()];
             if (priceLevelBids.empty()) {
                 return;
             }
@@ -57,11 +56,11 @@ public:
             priceLevelBids.erase(order_surface->orderPointerSidePriceIterator);
             _orders.erase(id);
         } else if (orderPtr->getOrderSide() == Side::SELL) {
-            if (pricingLayer.asks.empty()) {
+            if (_pricing_layer.asks.empty()) {
                 return;
             }
             
-            std::list<OrderPointer> priceLevelAsks = pricingLayer.asks[orderPtr->getOrderPrice()];
+            std::list<OrderPointer> priceLevelAsks = _pricing_layer.asks[orderPtr->getOrderPrice()];
             if (priceLevelAsks.empty()) {
                 return;
             }
