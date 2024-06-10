@@ -8,7 +8,7 @@
 #include "timing.h"
 #include "side.h"
 #include "pricing.h"
-#include "exchange.h"
+#include "exchange_id.h"
 
 using TickerSymbol = const char *;
 
@@ -47,7 +47,7 @@ enum class OrderFillCapacityType {
 class Order {
 protected:
     TickerSymbol _ticker;
-    Exchange _exchange;
+    ExchangeId _exchangeId;
     OrderType _type;
     OrderId _id;
     Timestamp _timestamp;
@@ -91,7 +91,7 @@ public:
         Price price,
         Quantity quantity,
         Side side,
-        Exchange exchange
+        ExchangeId exchangeId
     ):
     _ticker(ticker),
     _status(OrderStatus::ACTIVE),
@@ -102,12 +102,12 @@ public:
     _side(side),
     _id(generateOrderId()),
     _timestamp(getTimestampInNanosecondsUTC()),
-    _exchange(exchange) {}
+    _exchangeId(exchangeId) {}
 
 
     // Getters
     [[nodiscard]] const TickerSymbol getOrderTicker() const { return _ticker; }
-    [[nodiscard]] const Exchange getOrderExchange() const { return _exchange; }
+    [[nodiscard]] const ExchangeId getOrderExchange() const { return _exchangeId; }
     [[nodiscard]] const OrderType getOrderType() const { return _type; }
     [[nodiscard]] const OrderId getOrderId() const { return _id; }
     [[nodiscard]] const Timestamp getTimestamp() const { return _timestamp; }
@@ -136,76 +136,76 @@ using OrderSurface = struct OrderSurface {
 
 
 class MarketOrder: public Order {
-    MarketOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-    : Order(ticker, OrderType::MARKET, price, quantity, side, exchange) {}
+    MarketOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+    : Order(ticker, OrderType::MARKET, price, quantity, side, exchangeId) {}
 };
 
 
 class MarketOnCloseOrder: public Order {
-    MarketOnCloseOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-    : Order(ticker, OrderType::MARKET_ON_CLOSE, price, quantity, side, exchange) {}
+    MarketOnCloseOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+    : Order(ticker, OrderType::MARKET_ON_CLOSE, price, quantity, side, exchangeId) {}
 };
 
 
 class DayOrder: public Order {
-    DayOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-    : Order(ticker, OrderType::DAY, price, quantity, side, exchange) {}
+    DayOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+    : Order(ticker, OrderType::DAY, price, quantity, side, exchangeId) {}
 };
 
 class GoodTillCancelledOrder: public Order {
-    GoodTillCancelledOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-    : Order(ticker, OrderType::GOOD_TILL_CANCELLED, price, quantity, side, exchange) {}
+    GoodTillCancelledOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+    : Order(ticker, OrderType::GOOD_TILL_CANCELLED, price, quantity, side, exchangeId) {}
 };
 
 
 class FillOrKillOrder: public Order {
-    FillOrKillOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-    : Order(ticker, OrderType::FILL_OR_KILL, price, quantity, side, exchange) {}
+    FillOrKillOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+    : Order(ticker, OrderType::FILL_OR_KILL, price, quantity, side, exchangeId) {}
 };
 
 
 // class TrailingStopOrder: public Order {
-//     TrailingStopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-//     : Order(ticker, OrderType::TRAILING_STOP, price, quantity, side, exchange) {}
+//     TrailingStopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+//     : Order(ticker, OrderType::TRAILING_STOP, price, quantity, side, exchangeId) {}
 // };
 
 // class AllOrNoneOrder: public Order {
-//     AllOrNoneOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-//     : Order(ticker, OrderType::ALL_OR_NONE, price, quantity, side, exchange) {}
+//     AllOrNoneOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+//     : Order(ticker, OrderType::ALL_OR_NONE, price, quantity, side, exchangeId) {}
 // };
 
 
 // class BracketOrder: public Order {
-//     BracketOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-//     : Order(ticker, OrderType::BRACKET, price, quantity, side, exchange) {}
+//     BracketOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+//     : Order(ticker, OrderType::BRACKET, price, quantity, side, exchangeId) {}
 // };
 
 
 // class MomentumOrder: public Order {
-//     MomentumOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-//     : Order(ticker, OrderType::MOMENTUM, price, quantity, side, exchange) {}
+//     MomentumOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+//     : Order(ticker, OrderType::MOMENTUM, price, quantity, side, exchangeId) {}
 // };
 
 
 // class StopOrder: public Order {
-//     StopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-//     : Order(ticker, OrderType::STOP, price, quantity, side, exchange) {}
+//     StopOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+//     : Order(ticker, OrderType::STOP, price, quantity, side, exchangeId) {}
 // };
 
 
 // class ImmediateOrCancelOrder: public Order {
-//     ImmediateOrCancelOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-//     : Order(ticker, OrderType::IMMEDIATE_OR_CANCEL, price, quantity, side, exchange) {}
+//     ImmediateOrCancelOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+//     : Order(ticker, OrderType::IMMEDIATE_OR_CANCEL, price, quantity, side, exchangeId) {}
 // };
 
 
 // class ConditionalOrder: public Order {
-//     ConditionalOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-//     : Order(ticker, OrderType::CONDITIONAL, price, quantity, side, exchange) {}
+//     ConditionalOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+//     : Order(ticker, OrderType::CONDITIONAL, price, quantity, side, exchangeId) {}
 // };
 
 
 // class BottomLineOrder: public Order {
-//     BottomLineOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, Exchange exchange)
-//     : Order(ticker, OrderType::BOTTOM_LINE, price, quantity, side, exchange) {}
+//     BottomLineOrder(TickerSymbol ticker, Price price, Quantity quantity, Side side, ExchangeId exchangeId)
+//     : Order(ticker, OrderType::BOTTOM_LINE, price, quantity, side, exchangeId) {}
 // };
